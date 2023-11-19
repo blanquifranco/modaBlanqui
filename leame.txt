@@ -1,0 +1,10 @@
+Ejecución de la Aplicación:
+La ejecución del proyecto comienza creando una instancia de la clase "Aplicacion" y luego se inicia el bucle principal que muestra un menú con 
+diferentes opciones para interactuar con la boutique ModaBlanqui.
+1-El usuario puede vender productos(por el momento vestidos), registrar clientes, o simplemente realizar una venta como cliente ocasional.
+2-También puede verificar el stock de un producto ingresando su código.
+3- La opción "Proveedores" permite gestionar los proveedores de la boutique.
+4-Para finalizar, el usuario puede seleccionar "Salir" para terminar la ejecución.
+El proyecto "ModaBlanqui" es una aplicación que simplifica la gestión de una boutique, permitiendo la venta de productos, la gestión del depósito, 
+la interacción con proveedores y la aplicación de descuentos personalizados a los clientes. La estructura del proyecto y la lógica de ejecución 
+se basan en clases y métodos que facilitan la administración de la boutique ModaBlanqui.

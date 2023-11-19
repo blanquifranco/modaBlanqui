@@ -1,0 +1,1 @@
+from productos.vendible import Vendible
