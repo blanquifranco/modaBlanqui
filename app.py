@@ -123,7 +123,6 @@ class Aplicacion:
             self.descuento_temporada = DescuentoTemporada(porcentaje_descuento2, temporada_descuento2)
             self.cliente_ocasional = ClienteOcasional(self.cliente,self.descuento_temporada)
             self.cliente_elegido = self.cliente_ocasional
-            print("clienng:", self.cliente_elegido.descuento)
         else:
             if respuesta == "2":
                 porcentaje_membrecia = float(input("Ingrese el porcentaje del Descuento: "))
@@ -157,7 +156,7 @@ class Aplicacion:
         codigo_prenda = input("Ingrese código de la prenda: ")
         self.boutique.verificar_stock(self.boutique.codigos[codigo_prenda])
 
-    @staticmethod               
+    #@staticmethod               
     def main(self):
         '''
         Punto de entrada de la aplicación donde se manejan las opciones del menú principal.

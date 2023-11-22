@@ -47,7 +47,7 @@ class AplicacionGUI(tk.Tk):
         '''
         Muestra el menú de opciones de la aplicación.
         '''
-        menu_label = tk.Label(self, text="Bienvenido/a ModaBlanqui", font=("Helvetica", 16))
+        menu_label = tk.Label(self, text="ModaBlanqui", font=("Helvetica", 25, "bold"), fg="purple", bg="blue")
         menu_label.pack(pady=10)
 
         vender_button = BotonPersonalizado(self, text="Vender", command=self.gestionar_venta)
@@ -100,8 +100,6 @@ class AplicacionGUI(tk.Tk):
                     tk.messagebox.showinfo("Error", str(e))
             else:
                 tk.messagebox.showinfo("Error", "Ingrese un código numérico de hasta 5 dígitos.")
-
-
 
     def verificar_stock(self):
         while True:
@@ -194,8 +192,6 @@ class AplicacionGUI(tk.Tk):
         else:
             tk.messagebox.showinfo("Error", f"No se ha encontrado el proveedor {ci} en la lista de proveedores.")
 
-
-    
     def registrar_cliente(self,callback=None):
         '''
         Permite al usuario registrar un cliente y asignarle un descuento.
@@ -207,20 +203,35 @@ class AplicacionGUI(tk.Tk):
             cedula_cliente_var = tk.StringVar()
             respuesta_var = tk.StringVar()
             temporada_descuento_var = tk.StringVar()
-            nombre_membrecia_var = tk.StringVar()
+            ventana_registro_cliente.geometry("450x360")
+            ventana_registro_cliente.configure(bg="#4A90E2")
+            ventana_registro_cliente.option_add("*TEntry*background", "#87CEEB")
+            ventana_registro_cliente.option_add("*TLabel*background", "#4A90E2")
 
+            def solicitar_input_con_validacion(mensaje, validacion_func):
+                while True:
+                    valor = simpledialog.askstring("Descuento", mensaje)
+                    if validacion_func(valor):
+                        return valor
+                    else:
+                        messagebox.showinfo("Valor Incorrecto", "Por favor, ingrese un valor válido.")
 
             def obtener_porcentaje():
-                while True:
-                    porcentaje = simpledialog.askstring("Descuento", "Ingrese el porcentaje del Descuento:")
+                def es_porcentaje_valido(valor):
                     try:
-                        porcentaje_float = float(porcentaje)
-                        if 0 <= porcentaje_float <= 100:
-                            return porcentaje_float
-                        else:
-                            tk.messagebox.showinfo("Error", "El porcentaje debe estar entre 0 y 100.")
+                        porcentaje_float = float(valor)
+                        return 0 <= porcentaje_float <= 100
                     except ValueError:
-                        tk.messagebox.showinfo("Error", "Por favor, ingrese un valor numérico válido.")
+                        return False
+                return solicitar_input_con_validacion("Ingrese el porcentaje del Descuento:", es_porcentaje_valido)
+
+            def obtener_membresia():
+                opciones_validas = ["nivel1", "nivel2", "nivel3"]
+                def es_membresia_valida(valor):
+                    return valor.lower() in opciones_validas
+                return solicitar_input_con_validacion("Ingrese nombre membresía (nivel1, nivel2, nivel3):", es_membresia_valida)
+            
+
             def registrar_cliente_interno():
                 nonlocal ventana_registro_cliente
 
@@ -229,6 +240,10 @@ class AplicacionGUI(tk.Tk):
                 cedula_cliente = cedula_cliente_var.get()
                 respuesta = respuesta_var.get()
                 
+                if not(nombre_cliente and email_cliente and cedula_cliente and respuesta):
+                    messagebox.showinfo("Error en el Registro", "Ningun campo puede quedar vacio")
+                    return
+
                 if not (cedula_cliente.isdigit() and len(cedula_cliente) > 0):
                     messagebox.showinfo("Error en el Registro", "El campo cedula debe ser numero entero mayor a cero")
                     return
@@ -237,22 +252,17 @@ class AplicacionGUI(tk.Tk):
 
                 if respuesta == "1":
                     temporada_descuento_var.set(simpledialog.askstring("Descuento", "Ingrese la temporada del Descuento:"))
-                    self.descuento_temporada = DescuentoTemporada(obtener_porcentaje(), temporada_descuento_var.get())
+                    self.descuento_temporada = DescuentoTemporada(float(obtener_porcentaje()), temporada_descuento_var.get())
                     self.cliente_ocasional = ClienteOcasional(self.cliente, self.descuento_temporada)
                     self.cliente_elegido = self.cliente_ocasional
                 elif respuesta == "2":
-                    opciones_validas = ["nivel1", "nivel2", "nivel3"]
-                    while True:
-                        nombre_membrecia_var.set(simpledialog.askstring("Descuento", "Ingrese nombre membresía (nivel1, nivel2, nivel3):")).lower()
-                        if nombre_membrecia in opciones_validas:
-                            break
-                    self.descuento_membresia = DescuentoMembresia(obtener_porcentaje(), nombre_membrecia_var.get())
+                    self.descuento_membresia = DescuentoMembresia(float(obtener_porcentaje()),obtener_membresia())
                     self.cliente_fiel = ClienteFiel(self.cliente, self.descuento_membresia)
                     self.cliente_elegido = self.cliente_fiel
                 if callback:
                     callback()
                 ventana_registro_cliente.destroy()
-                return True
+                
             # Crear y colocar widgets en la ventana de registro de cliente
             tk.Label(ventana_registro_cliente, text="Nombre del Cliente:").pack(pady=5)
             tk.Entry(ventana_registro_cliente, textvariable=nombre_cliente_var).pack(pady=5)
@@ -267,7 +277,7 @@ class AplicacionGUI(tk.Tk):
             tk.Radiobutton(ventana_registro_cliente, text="Cliente ocasional", variable=respuesta_var, value="1").pack(pady=5)
             tk.Radiobutton(ventana_registro_cliente, text="Cliente fiel", variable=respuesta_var, value="2").pack(pady=5)
 
-            btn_registrar = tk.Button(ventana_registro_cliente, text="Registrar Cliente", command=registrar_cliente_interno)
+            btn_registrar = BotonPersonalizado(ventana_registro_cliente, text="Registrar Cliente", command=registrar_cliente_interno)
             btn_registrar.pack(pady=10)
 
             # Mostrar la ventana de registro de cliente
@@ -275,10 +285,6 @@ class AplicacionGUI(tk.Tk):
         except ValueError as e:
             messagebox.showinfo("Error en el Registro", str(e))
             return False
-
-        
-
-
 
     def salir(self):
         '''
@@ -289,9 +295,26 @@ class AplicacionGUI(tk.Tk):
 
 
 class BotonPersonalizado(tk.Button):
+    '''Clase para personalizar botones'''
     def __init__(self, master=None, **kwargs):
         tk.Button.__init__(self, master, **kwargs)
         self.config(bg="lightblue", padx=10, pady=5, font=("Helvetica", 12))
+        self.bind("<Button-1>", self.cambiar_cursor)
+        self.bind("<Enter>", self.cursor_sobre_boton)
+        self.bind("<Leave>", self.cursor_fuera_boton)
+    def cambiar_cursor(self, event):
+        self.config(cursor="heart")
+
+    def cursor_sobre_boton(self, event):
+        self.config(cursor="heart")
+
+        # Cambiar el color de fondo cuando el ratón está sobre el botón
+        self.config(bg="lightcyan")
+
+    def cursor_fuera_boton(self, event):
+        # Restaurar el cursor y el color de fondo cuando el ratón sale del botón
+        self.config(cursor="")
+        self.config(bg="lightblue")
 
 
 

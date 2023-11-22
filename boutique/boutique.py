@@ -41,7 +41,7 @@ class Boutique:
         self.codigos = {}
         self.proveedores = []
         self.proveedores_id = {}
-        self.conexion = Conexion()
+        #self.conexion = Conexion()
     def agregar_stock(self, producto):
         '''Método que se encarga de agregar un producto en la tienda'''
         codigo = producto.codigo
@@ -78,30 +78,34 @@ class Boutique:
         '''Funcion encargada de vender, tambien se agrega clientes a la lista de clientes y se agrega al carrito del cliente
         luego de haber calculado el precio final con los descuentos correspondientes'''
         # Vende un producto a un cliente, aplicando los descuentos correspondientes y actualizando el stock
-        if self.verificar_stock(producto)[0]:
-            # Si hay disponibilidad del producto, calcula el precio final con los descuentos
-            if cliente:
-                if cliente.cliente.ci != "nada":
-                    self.conexion.agregar_cliente(cliente)
-                    self.conexion.close()
-                self.clientes.append(cliente)
-                cliente.calcular_descuento()
-                producto.calcular_descuento()
-                precio_final = producto.precio * (1 - cliente.descuento) * (1 - producto.descuento)
-                
+        conexion = Conexion()
+        try:
+            if self.verificar_stock(producto)[0]:
+                # Si hay disponibilidad del producto, calcula el precio final con los descuentos
+                if cliente:
+                    if cliente.cliente.ci != "nada":
+                        conexion.agregar_cliente(cliente)
+                    self.clientes.append(cliente)
+                    cliente.calcular_descuento()
+                    producto.calcular_descuento()
+                    precio_final = producto.precio * (1 - cliente.descuento) * (1 - producto.descuento)
+                    
+                else:
+                    producto.calcular_descuento()
+                    precio_final = producto.precio * (1 - producto.descuento)
+                try:
+                    cliente.cliente.agregar_carrito(producto)
+                    self.quitar_stock(producto)
+                except ValueError:
+                    self.deposito.sacar_prenda(producto)
+                # Devuelve el precio fin al del producto vendido
+                venta = f"Vendido, Precio Final: {precio_final}Gs"
+                return venta
             else:
-                producto.calcular_descuento()
-                precio_final = producto.precio * (1 - producto.descuento)
-            try:
-                cliente.cliente.agregar_carrito(producto)
-                self.quitar_stock(producto)
-            except ValueError:
-                self.deposito.sacar_prenda(producto)
-            # Devuelve el precio fin al del producto vendido
-            venta = f"Vendido, Precio Final: {precio_final}Gs"
-            return venta
-        else:
-            raise ValueError(f"Producto: {producto.codigo} {producto.nombre} no está disponible para la venta")
+                raise ValueError(f"Producto: {producto.codigo} {producto.nombre} no está disponible para la venta")
+        finally:
+            conexion.close()
+
     
     def agregar_proveedor(self,proveedor):
         '''Funcionque se encarga de añadir un proveedor a lista de proveedores'''

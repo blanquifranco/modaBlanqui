@@ -1,5 +1,7 @@
+Instalaciones:
+Se necesita instalar ZODB para el manejo de base de datos 
 Ejecución de la Aplicación:
-La ejecución del proyecto comienza creando una instancia de la clase "Aplicacion" y luego se inicia el bucle principal que muestra un menú con 
+La ejecución del proyecto comienza creando una instancia de la clase "AplicacionGUI" que se encuentra en el archivo main.py y luego se inicia el bucle principal que muestra un menú con 
 diferentes opciones para interactuar con la boutique ModaBlanqui.
 1-El usuario puede vender productos(por el momento vestidos), registrar clientes, o simplemente realizar una venta como cliente ocasional.
 2-También puede verificar el stock de un producto ingresando su código.
