@@ -2,15 +2,16 @@
 from abc import ABC, abstractmethod
 from descuentos.descuento import DescuentoMembresia, DescuentoTemporada
 from boutique.boutique import Boutique
+from persistent import Persistent
 class Cliente(ABC):
     """
         Clase abstracta que representa un cliente.
     """
-    def __init__(self, nombre, email, telefono):
+    def __init__(self, nombre, email, ci):
         # Inicializa los atributos del cliente
         self.nombre = nombre
         self.email = email
-        self.telefono = telefono
+        self.ci = ci
         # Crea una lista vacía para almacenar el carrito del cliente
         self.carrito = []
         # Crea un atributo para almacenar el descuento del cliente, que se define en las subclases
@@ -42,7 +43,7 @@ class Cliente(ABC):
 
 
 
-class ClienteFiel:
+class ClienteFiel(Persistent):
     """
     Clase que representa a un cliente fiel.
     """
@@ -65,7 +66,7 @@ class ClienteFiel:
     #def agregar_carrito(self, producto):
     # self.cliente.agregar_carrito.append(producto)
 
-class ClienteOcasional:
+class ClienteOcasional(Persistent):
     """
     Clase que representa a un cliente ocasional.
     """

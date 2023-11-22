@@ -5,7 +5,9 @@ from productos.ropa import Vestido
 from descuentos.descuento import DescuentoMembresia, DescuentoTemporada
 from clientes.cliente import ClienteFiel, ClienteOcasional, Cliente
 import tkinter as tk
-from tkinter import simpledialog
+from tkinter import simpledialog,messagebox
+from tkinter.ttk import Combobox
+
 
 class AplicacionGUI(tk.Tk):
     '''
@@ -16,6 +18,7 @@ class AplicacionGUI(tk.Tk):
         super().__init__()
 
         self.title("ModaBlanqui - Aplicación de Boutique")
+        self.configure(bg="blue")
         self.geometry("400x300")
 
         self.deposito = Deposito()
@@ -36,6 +39,7 @@ class AplicacionGUI(tk.Tk):
         self.cliente_ocasional = None
         self.cliente_elegido = None
         self.proveedores = None
+        self.ventana_cliente = None
 
         self.crear_widgets()
 
@@ -46,79 +50,41 @@ class AplicacionGUI(tk.Tk):
         menu_label = tk.Label(self, text="Bienvenido/a ModaBlanqui", font=("Helvetica", 16))
         menu_label.pack(pady=10)
 
-        vender_button = tk.Button(self, text="Vender", command=self.gestionar_venta)
+        vender_button = BotonPersonalizado(self, text="Vender", command=self.gestionar_venta)
         vender_button.pack(pady=10)
 
-        stock_button = tk.Button(self, text="Verificar Stock", command=self.verificar_stock)
+        stock_button = BotonPersonalizado(self, text="Verificar Stock", command=self.verificar_stock)
         stock_button.pack(pady=10)
 
-        proveedores_button = tk.Button(self, text="Gestionar Proveedores", command=self.gestionar_proveedores)
+        proveedores_button = BotonPersonalizado(self, text="Gestionar Proveedores", command=self.gestionar_proveedores)
         proveedores_button.pack(pady=10)
 
-        salir_button = tk.Button(self, text="Salir", command=self.salir)
+        salir_button = BotonPersonalizado(self, text="Salir", command=self.salir)
         salir_button.pack(pady=10)
 
     def gestionar_venta(self):
+        def callback_vender_prenda():
+            if self.cliente_elegido:
+                self.vender_prenda(self.cliente_elegido)
+            else:
+                tk.messagebox.showinfo("Error", "Hubo un problema al registrar el cliente.")
         while True:
             respuesta_cliente = simpledialog.askstring("Registro de Cliente", "¿Desea registrar un cliente? (SI/NO)").lower()
+
             if respuesta_cliente in ["si", "no"]:
                 break
             else:
                 tk.messagebox.showinfo("Error", "Por favor, ingrese 'SI' o 'NO'.")
 
         if respuesta_cliente == "si":
-            if not self.registrar_cliente():
-                tk.messagebox.showinfo("Error en el Registro", "Hubo un error en el registro.")
-                return
+            self.registrar_cliente(callback_vender_prenda)
             self.vender_prenda(self.cliente_elegido)
         else:
             self.cliente = Cliente("sin nombre", "nada", "nada")
             self.cliente_ocasional = ClienteOcasional(self.cliente, 0.0)
             self.vender_prenda(self.cliente_ocasional)
 
-    def registrar_cliente(self):
-        '''
-        Permite al usuario registrar un cliente y asignarle un descuento.
-        '''
-        try:
-            nombre_cliente = simpledialog.askstring("Registrar Cliente", "Ingrese el nombre del cliente:")
-            email_cliente = simpledialog.askstring("Registrar Cliente", "Ingrese el email del cliente:")
-            cedula_cliente = ""
-
-            while not (cedula_cliente.isdigit() and len(cedula_cliente) > 0):
-                cedula_cliente = simpledialog.askstring("Registrar Cliente", "Ingrese la cédula del cliente:")
-
-            self.cliente = Cliente(nombre_cliente, email_cliente, cedula_cliente)
-            respuesta = ""
-
-            # Validar que la respuesta sea 1 o 2
-            while respuesta not in ["1", "2"]:
-                respuesta = simpledialog.askstring("Tipo de Cliente", "1-Cliente ocasional, 2-Cliente fiel:")
-
-            self.cliente_elegido = self.cliente_fiel or self.cliente_ocasional
-
-            if respuesta == "1":
-                porcentaje_descuento2 = float(simpledialog.askstring("Descuento", "Ingrese el porcentaje del Descuento:"))
-                temporada_descuento2 = simpledialog.askstring("Descuento", "Ingrese la temporada del Descuento:")
-                self.descuento_temporada = DescuentoTemporada(porcentaje_descuento2, temporada_descuento2)
-                self.cliente_ocasional = ClienteOcasional(self.cliente, self.descuento_temporada)
-                self.cliente_elegido = self.cliente_ocasional
-            elif respuesta == "2":
-                porcentaje_membrecia = float(simpledialog.askstring("Descuento", "Ingrese el porcentaje del Descuento:"))
-                opciones_validas = ["nivel1", "nivel2", "nivel3"]
-                while True:
-                    nombre_membrecia = simpledialog.askstring("Descuento", "Ingrese nombre membresía (nivel1, nivel2, nivel3):").lower()
-                    if nombre_membrecia in opciones_validas:
-                        break
-                self.descuento_membresia = DescuentoMembresia(porcentaje_membrecia, nombre_membrecia)
-                self.cliente_fiel = ClienteFiel(self.cliente, self.descuento_membresia)
-                self.cliente_elegido = self.cliente_fiel
-            return True
-        except ValueError as e:
-            tk.messagebox.showinfo("Error en el Registro", str(e))
-            return False
-
-
+    
     def vender_prenda(self, cliente):
         while True:
             codigo_prenda = simpledialog.askstring("Venta de Prenda", "Ingrese código de la prenda:")
@@ -229,10 +195,103 @@ class AplicacionGUI(tk.Tk):
             tk.messagebox.showinfo("Error", f"No se ha encontrado el proveedor {ci} en la lista de proveedores.")
 
 
+    
+    def registrar_cliente(self,callback=None):
+        '''
+        Permite al usuario registrar un cliente y asignarle un descuento.
+        '''
+        try:
+            ventana_registro_cliente = tk.Toplevel(self)
+            nombre_cliente_var = tk.StringVar()
+            email_cliente_var = tk.StringVar()
+            cedula_cliente_var = tk.StringVar()
+            respuesta_var = tk.StringVar()
+            temporada_descuento_var = tk.StringVar()
+            nombre_membrecia_var = tk.StringVar()
+
+
+            def obtener_porcentaje():
+                while True:
+                    porcentaje = simpledialog.askstring("Descuento", "Ingrese el porcentaje del Descuento:")
+                    try:
+                        porcentaje_float = float(porcentaje)
+                        if 0 <= porcentaje_float <= 100:
+                            return porcentaje_float
+                        else:
+                            tk.messagebox.showinfo("Error", "El porcentaje debe estar entre 0 y 100.")
+                    except ValueError:
+                        tk.messagebox.showinfo("Error", "Por favor, ingrese un valor numérico válido.")
+            def registrar_cliente_interno():
+                nonlocal ventana_registro_cliente
+
+                nombre_cliente = nombre_cliente_var.get()
+                email_cliente = email_cliente_var.get()
+                cedula_cliente = cedula_cliente_var.get()
+                respuesta = respuesta_var.get()
+                
+                if not (cedula_cliente.isdigit() and len(cedula_cliente) > 0):
+                    messagebox.showinfo("Error en el Registro", "El campo cedula debe ser numero entero mayor a cero")
+                    return
+            
+                self.cliente = Cliente(nombre_cliente, email_cliente, cedula_cliente)
+
+                if respuesta == "1":
+                    temporada_descuento_var.set(simpledialog.askstring("Descuento", "Ingrese la temporada del Descuento:"))
+                    self.descuento_temporada = DescuentoTemporada(obtener_porcentaje(), temporada_descuento_var.get())
+                    self.cliente_ocasional = ClienteOcasional(self.cliente, self.descuento_temporada)
+                    self.cliente_elegido = self.cliente_ocasional
+                elif respuesta == "2":
+                    opciones_validas = ["nivel1", "nivel2", "nivel3"]
+                    while True:
+                        nombre_membrecia_var.set(simpledialog.askstring("Descuento", "Ingrese nombre membresía (nivel1, nivel2, nivel3):")).lower()
+                        if nombre_membrecia in opciones_validas:
+                            break
+                    self.descuento_membresia = DescuentoMembresia(obtener_porcentaje(), nombre_membrecia_var.get())
+                    self.cliente_fiel = ClienteFiel(self.cliente, self.descuento_membresia)
+                    self.cliente_elegido = self.cliente_fiel
+                if callback:
+                    callback()
+                ventana_registro_cliente.destroy()
+                return True
+            # Crear y colocar widgets en la ventana de registro de cliente
+            tk.Label(ventana_registro_cliente, text="Nombre del Cliente:").pack(pady=5)
+            tk.Entry(ventana_registro_cliente, textvariable=nombre_cliente_var).pack(pady=5)
+
+            tk.Label(ventana_registro_cliente, text="Email del Cliente:").pack(pady=5)
+            tk.Entry(ventana_registro_cliente, textvariable=email_cliente_var).pack(pady=5)
+
+            tk.Label(ventana_registro_cliente, text="Cédula del Cliente:").pack(pady=5)
+            tk.Entry(ventana_registro_cliente, textvariable=cedula_cliente_var).pack(pady=5)
+
+            tk.Label(ventana_registro_cliente, text="Tipo de Cliente:").pack(pady=5)
+            tk.Radiobutton(ventana_registro_cliente, text="Cliente ocasional", variable=respuesta_var, value="1").pack(pady=5)
+            tk.Radiobutton(ventana_registro_cliente, text="Cliente fiel", variable=respuesta_var, value="2").pack(pady=5)
+
+            btn_registrar = tk.Button(ventana_registro_cliente, text="Registrar Cliente", command=registrar_cliente_interno)
+            btn_registrar.pack(pady=10)
+
+            # Mostrar la ventana de registro de cliente
+            ventana_registro_cliente.mainloop()
+        except ValueError as e:
+            messagebox.showinfo("Error en el Registro", str(e))
+            return False
+
+        
+
+
+
     def salir(self):
         '''
         Muestra un mensaje de despedida y cierra la aplicación.
         '''
         tk.messagebox.showinfo("Despedida", "Buen Trabajo ModaBlanqui. Hasta pronto.")
         self.destroy()
+
+
+class BotonPersonalizado(tk.Button):
+    def __init__(self, master=None, **kwargs):
+        tk.Button.__init__(self, master, **kwargs)
+        self.config(bg="lightblue", padx=10, pady=5, font=("Helvetica", 12))
+
+
 

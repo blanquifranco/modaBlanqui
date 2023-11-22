@@ -178,6 +178,6 @@ class Aplicacion:
                 print("Opción inválida. Intente de nuevo.")
 
 
-#if __name__ == "__main__":
-#  app = Aplicacion()
-# app.main()
+if __name__ == "__main__":
+    app = Aplicacion()
+    app.main()

@@ -1,4 +1,5 @@
-
+import transaction
+from database.database import Conexion
 class Boutique:
     '''
     Clase que representa una tienda física.
@@ -40,6 +41,7 @@ class Boutique:
         self.codigos = {}
         self.proveedores = []
         self.proveedores_id = {}
+        self.conexion = Conexion()
     def agregar_stock(self, producto):
         '''Método que se encarga de agregar un producto en la tienda'''
         codigo = producto.codigo
@@ -79,10 +81,14 @@ class Boutique:
         if self.verificar_stock(producto)[0]:
             # Si hay disponibilidad del producto, calcula el precio final con los descuentos
             if cliente:
+                if cliente.cliente.ci != "nada":
+                    self.conexion.agregar_cliente(cliente)
+                    self.conexion.close()
                 self.clientes.append(cliente)
                 cliente.calcular_descuento()
                 producto.calcular_descuento()
                 precio_final = producto.precio * (1 - cliente.descuento) * (1 - producto.descuento)
+                
             else:
                 producto.calcular_descuento()
                 precio_final = producto.precio * (1 - producto.descuento)
